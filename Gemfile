@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gem 'async', '~> 2.23'
 gem 'io-endpoint', '~> 0.15.2'
+gem 'oj', '~> 3.16'
 
 group :development, :test do
   gem 'debug', platforms: %i[mri windows], require: 'debug/prelude'

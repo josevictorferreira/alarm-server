@@ -7,7 +7,7 @@ require 'async/queue'
 class AsyncLogger
   def initialize(output = $stdout, level = :info)
     @queue = Async::Queue.new
-    @output = output
+    @output = output.downcase
     @level = level
 
     @task = Async do
@@ -16,26 +16,43 @@ class AsyncLogger
   end
 
   def debug(message)
-    @queue.enqueue([:debug, message]) if @level == :debug
+    case @level
+    when :debug
+      @queue.enqueue([:debug, message])
+    end
   end
 
   def info(message)
-    @queue.enqueue([:info, message]) if  %i[debug info].include?(@level)
+    case @level
+    when :debug, :info
+      @queue.enqueue([:info, message])
+    end
   end
 
   def warn(message)
-    @queue.enqueue([:warn, message]) if %i[debug info warn].include?(@level)
+    case @level
+    when :debug, :info, :warn
+      @queue.enqueue([:warn, message])
+    end
   end
 
   def error(message)
-    @queue.enqueue([:error, message]) if %i[debug info warn error].include?(@level)
+    case @level
+    when :debug, :info, :warn, :error
+      @queue.enqueue([:error, message])
+    end
   end
 
   def fatal(message)
-    @queue.enqueue([:fatal, message]) if %i[debug info warn error fatal].include?(@level)
+    case @level
+    when :debug, :info, :warn, :error, :fatal
+      @queue.enqueue([:fatal, message])
+    end
   end
 
   def close
+    return unless @task.running?
+
     @queue.enqueue(nil)
     @task.wait
   end
@@ -46,19 +63,24 @@ class AsyncLogger
     while (log = @queue.dequeue)
       break if log.nil?
 
-      level, message = log
-
-      timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S.%L')
-      log_line = "[#{timestamp}] #{level.to_s.upcase}: #{message}"
-
-      @output.print(log_line) && return if @output == $stdout || @output == $stderr
-
-      write_to_file! log_line
+      case @output
+      when 'stdout', 'stderr'
+        print(format_log_line(log))
+      else
+        write_to_file!(format_log_line(log))
+      end
     end
   end
 
+  def format_log_line(log)
+    level, message = log
+
+    timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S.%L')
+    "[#{timestamp}] #{level.to_s.upcase} => #{message}\n"
+  end
+
   def write_to_file!(log_line)
-    FileUtils.mkdir_p(File.dirname(@outputl)) unless Dir.exist?(File.dirname(@output))
+    FileUtils.mkdir_p(File.dirname(@output)) unless Dir.exist?(File.dirname(@output))
     File.open(@output, 'a') do |file|
       file.write(log_line)
     end

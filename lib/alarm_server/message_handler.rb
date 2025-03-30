@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'json'
+require 'oj'
+require 'debug'
 
 # This class is responsible for handling messages received by the server.
 class MessageHandler
@@ -11,59 +12,60 @@ class MessageHandler
   def initialize(context)
     @context = context
     @logger = @context.fetch(:logger)
-    @address = @context.fetch(:address)
-    @data = @context.fetch(:data)
+    @socket = @context.fetch(:socket)
+    @raw_data = @context.fetch(:raw_data)
   end
 
   def call
-    return handle_ping! if @data == 'PING'
+    return handle_ping! if @raw_data == 'PING'
 
-    case parsed_json_message['type']
+    @data = parsed_json_message(@raw_data)
+
+    case data&.dig(:Type)
     when 'Alarm'
       handle_alarm!
     when 'Log'
       handle_log!
     else
-      handle_erro!
+      handle_error!
     end
   end
 
   private
 
-  attr_reader :logger, :address, :data
+  attr_reader :logger, :socket, :data
 
   def handle_ping!
-    logger.debug("Received PING from #{address}")
     send_response('PONG')
   end
 
   def handle_alarm!
-    logger.debug("Received ALARM from #{address}")
-    logger.info("ALARM: #{parsed_json_message}")
+    logger.info("ALARM: #{data}")
   end
 
   def handle_log!
-    logger.debug("Received LOG from #{address}")
-    logger.info("LOG: #{parsed_json_message}")
+    logger.info("LOG: #{data}")
   end
 
   def handle_error!
-    logger.error("Unknown message type from #{address}: #{parsed_json_message}")
+    logger.error('Unable to handle message, no `Type` attribute found.')
   end
 
-  def parsed_json_message
-    JSON.parse(data)
-  rescue JSON::ParserError
-    logger.error("Failed to parse JSON data from #{address}: #{data}")
+  def parsed_json_message(raw_data)
+    json_start_idx = raw_data.index('{')
+    return nil if json_start_idx.nil?
+
+    data_str = raw_data[json_start_idx..]
+
+    Oj.load(data_str, mode: :compat, symbol_keys: true, cache_keys: true)
+  rescue StandardError => _e
+    logger.error("Unable to parse JSON, payload: `#{data_str}`")
     nil
   end
 
   def send_response(response)
-    logger.debug("Sending response to #{address}: #{response}")
+    socket&.write(response)
 
-    socket = @address.connect
-    socket.write(response)
-  ensure
-    socket&.close
+    logger.debug("Sent response: #{response}")
   end
 end

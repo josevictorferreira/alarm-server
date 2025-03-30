@@ -4,4 +4,4 @@
 require 'bundler/setup'
 require_relative '../lib/alarm_server'
 
-AlarmServer.run
+AlarmServer.run!

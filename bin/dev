@@ -4,30 +4,36 @@
 require 'bundler/setup'
 require 'listen'
 require_relative '../lib/alarm_server'
+require 'debug'
 
-def start_server
-  pid = fork do
-    AlarmServer.run!
-  end
-  Process.detach(pid)
-  pid
+def start_server!
+  spawn('./bin/server')
 end
 
-server_pid = start_server
+def stop_server!(pid)
+  nil unless pid && Process.kill('TERM', pid)
+rescue StandardError
+  false
+end
+
+server_pid = start_server!
 puts("Alarm Server started with PID: #{server_pid}\n")
 
 listener = Listen.to(File.expand_path('../lib', __dir__)) do |_modified, _added, _removed|
   puts("Changes detected in lib. Restarting Alarm Server...\n")
 
-  begin
-    Process.kill('TERM', server_pid)
-    Process.wait(server_pid)
-  end
+  stop_server! server_pid
 
-  server_pid = start_server
+  server_pid = start_server!
   puts("Alarm Server restarted with PID: #{server_pid}\n")
 end
 
 listener.start
 
-sleep
+begin
+  sleep
+rescue Interrupt
+  stop_server! server_pid
+  puts("\nAlarm Server stopped\n")
+  exit
+end
