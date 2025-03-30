@@ -10,7 +10,7 @@ require_relative 'alarm_server/message_handler'
 module AlarmServer
   BIND_ADDRESS = ENV.fetch('ADDRESS', '0.0.0.0').freeze
   BIND_PORT = ENV.fetch('PORT', 8888).to_i.freeze
-  LOG_LEVEL = ENV.fetch('LOG_LEVEL', 'debug').to_sym.freeze
+  LOG_LEVEL = ENV.fetch('LOG_LEVEL', 'INFO').downcase.to_sym.freeze
   LOG_OUTPUT = ENV.fetch('LOG_OUTPUT', 'STDOUT').freeze
   ADDRESS_INFO = Addrinfo.tcp(BIND_ADDRESS, BIND_PORT).freeze
 
