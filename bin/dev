@@ -5,6 +5,9 @@ require 'bundler/setup'
 require 'listen'
 require_relative '../lib/alarm_server'
 require 'debug'
+require 'dotenv'
+
+Dotenv.load
 
 def start_server!
   spawn('./bin/server')

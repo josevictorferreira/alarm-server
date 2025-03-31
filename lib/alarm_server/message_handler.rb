@@ -1,71 +1,71 @@
 # frozen_string_literal: true
 
-require 'oj'
 require 'debug'
 
-# This class is responsible for handling messages received by the server.
-class MessageHandler
-  def self.call(context)
-    new(context).call
-  end
+module AlarmServer
+  class MessageHandler
+    include Import[:logger, :mqtt_client, :serializer]
 
-  def initialize(context)
-    @context = context
-    @logger = @context.fetch(:logger)
-    @socket = @context.fetch(:socket)
-    @raw_data = @context.fetch(:raw_data)
-  end
-
-  def call
-    return handle_ping! if @raw_data == 'PING'
-
-    @data = parsed_json_message(@raw_data)
-
-    case data&.dig(:Type)
-    when 'Alarm'
-      handle_alarm!
-    when 'Log'
-      handle_log!
-    else
-      handle_error!
+    def self.call(socket, message)
+      new(socket, message).call
     end
-  end
 
-  private
+    def initialize(socket, message, **args)
+      @socket = socket
+      @message = message
+      @logger = args[:logger]
+      @mqtt_client = args[:mqtt_client]
+      @serializer = args[:serializer]
+    end
 
-  attr_reader :logger, :socket, :data
+    def call
+      return handle_ping! if @message == 'PING'
 
-  def handle_ping!
-    send_response('PONG')
-  end
+      @data = parsed_json_message(@message)
 
-  def handle_alarm!
-    logger.info("ALARM: #{data}")
-  end
+      case data&.dig(:Type)
+      when 'Alarm'
+        handle_alarm!
+      when 'Log'
+        handle_log!
+      else
+        handle_error!
+      end
+    end
 
-  def handle_log!
-    logger.info("LOG: #{data}")
-  end
+    private
 
-  def handle_error!
-    logger.error('Unable to handle message, no `Type` attribute found.')
-  end
+    attr_reader :socket, :data
 
-  def parsed_json_message(raw_data)
-    json_start_idx = raw_data.index('{')
-    return nil if json_start_idx.nil?
+    def handle_ping!
+      send_response('PONG')
+    end
 
-    data_str = raw_data[json_start_idx..]
+    def handle_alarm!
+      mqtt_client.publish(data)
+      logger.info("ALARM: #{data}")
+    end
 
-    Oj.load(data_str, mode: :compat, symbol_keys: true, cache_keys: true)
-  rescue StandardError => _e
-    logger.error("Unable to parse JSON, payload: `#{data_str}`")
-    nil
-  end
+    def handle_log!
+      mqtt_client.publish(data)
+      logger.info("LOG: #{data}")
+    end
 
-  def send_response(response)
-    socket&.write(response)
+    def handle_error!
+      logger.error('Unable to handle message, no `Type` attribute found.')
+    end
 
-    logger.debug("Sent response: #{response}")
+    def parsed_json_message(data_str)
+      serializer.load(data_str, mode: :compat, symbol_keys: true, cache_keys: true)
+    rescue StandardError => _e
+      logger.error("Unable to parse JSON, payload: `#{data_str}`")
+      nil
+    end
+
+    def send_response(response)
+      socket&.write(response)
+
+      logger.debug("Sent response: #{response}")
+    end
   end
 end

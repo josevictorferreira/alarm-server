@@ -22,10 +22,11 @@ The server is configured using environment variables. The following variables ar
 
 - `PORT`: The port the server listens on. Default: `8888`
 - `ADDRESS`: The IP addres to be binded on your local machine. Default: `0.0.0.0`
-- `MQTT_HOST`: The hostname of the MQTT broker. Default: `localhost`
-- `MQTT_PORT`: The port of the MQTT broker. Default: `1883`
-- `MQTT_USERNAME`: The username to use when connecting to the MQTT broker. Default: `nil`
-- `MQTT_PASSWORD`: The password to use when connecting to the MQTT broker. Default: `nil`
+- `MQTT_URL`: The URL of the MQTT broker. Default: `tcp://localhost:1883`
+- `MQTT_TOPIC`: The topic to publish the alarm messages to. Default: `alarm`
+- `MQTT_CLIENT_ID`: The client ID to use when connecting to the MQTT broker. Default: `alarm_server`
+- `LOG_LEVEL`: The log level to use. Default: `info`
+- `LOG_OUTPUT`: The output to log to. Default: `STDOUT`.  Can be also a file path.
 
 ## Usage
 
