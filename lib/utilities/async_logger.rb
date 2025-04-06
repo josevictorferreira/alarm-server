@@ -2,12 +2,13 @@
 
 require 'async'
 require 'async/queue'
+require 'debug'
 
 module Utilities
   class AsyncLogger
     def initialize(output = $stdout, level = :info)
       @queue = Async::Queue.new
-      @output = output.downcase
+      @output = initialize_output(output)
       @level = level
 
       @task = Async do
@@ -59,13 +60,27 @@ module Utilities
 
     private
 
+    def initialize_output(output)
+      case output
+      when 'stdout', $stdout
+        $stdout
+      when 'stderr', $stderr
+        $stderr
+      when StringIO
+        output
+      else ## When is a file path
+        FileUtils.mkdir_p(File.dirname(@output)) unless Dir.exist?(File.dirname(output))
+        File.expand_path(file)
+      end
+    end
+
     def process_log_queue
       while (log = @queue.dequeue)
         break if log.nil?
 
         case @output
-        when 'stdout', 'stderr'
-          print(format_log_line(log))
+        when $stdout, $stderr
+          @output.puts(format_log_line(log))
         else
           write_to_file!(format_log_line(log))
         end

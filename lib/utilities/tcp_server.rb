@@ -56,7 +56,7 @@ module Utilities
 
     def parse_message(full_message)
       json_start_idx = full_message.index('{')
-      full_data = if json_start_idx.nil?
+      full_data = if json_start_idx.nil? || json_start_idx.zero?
                     full_message
                   else
                     full_message[json_start_idx..]
