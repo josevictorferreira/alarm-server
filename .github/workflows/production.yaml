@@ -8,7 +8,7 @@ on:
 env:
   CONTAINER_REGISTRY: ghcr.io
   CONTAINER_REGISTRY_USERNAME: $${{ github.actor }}
-  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CI_TOKEN }}
 
 jobs:
   build:
