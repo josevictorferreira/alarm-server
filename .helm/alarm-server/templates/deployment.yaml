@@ -1,0 +1,79 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.app.label }}
+  labels:
+    app: {{ .Values.app.label }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.app.label }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    rollingUpdate:
+      maxSurge: {{ .Values.strategy.maxSurge }}
+      maxUnavailable: {{ .Values.strategy.maxUnavailable }}
+  minReadySeconds: {{ .Values.strategy.minReadySeconds }}
+  replicas: {{ .Values.app.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.label }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        name: {{ .Chart.Name }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.app.env.port }}
+        command:
+          {{- range .Values.app.command }}
+          - {{ . | quote }}
+          {{- end }}
+        startupProbe:
+          exec: 
+            command:
+            {{- range .Values.app.healthcheck_command }}
+            - {{ . | quote }}
+            {{- end }}
+          periodSeconds: 3
+          failureThreshold: 30
+        readinessProbe:
+          exec: 
+            command:
+            {{- range .Values.app.healthcheck_command }}
+            - {{ . | quote }}
+            {{- end }}
+          periodSeconds: 60
+          failureThreshold: 1
+          timeoutSeconds: 1
+          successThreshold: 1
+        livenessProbe:
+          exec: 
+            command:
+            {{- range .Values.app.healthcheck_command }}
+            - {{ . | quote }}
+            {{- end }}
+          periodSeconds: 60
+          failureThreshold: 3
+          timeoutSeconds: 1
+          successThreshold: 1
+        {{- with .Values.app.resources }}
+        resources:
+          requests:
+            memory: "{{ .requests.memory }}"
+            cpu: "{{ .requests.cpu }}"
+          limits:
+            memory: "{{ .limits.memory }}"
+        {{- end }}
+        {{- with .Values.app.env }}
+        env:
+          {{- range $key, $value := . }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end }}
+        {{- end }}

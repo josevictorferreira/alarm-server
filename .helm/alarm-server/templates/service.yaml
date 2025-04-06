@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.label }}
+  labels:
+    name: {{ .Values.app.label }}
+    env: {{ .Values.app.environment }}
+spec:
+  type: {{ .Values.app.serviceType }}
+  {{- if eq .Values.app.serviceType "LoadBalancer" }}
+  loadBalancerIP: {{ .Values.app.loadBalancerIP }}
+  {{- end }}
+  selector:
+    app: {{ .Values.app.label }}
+  ports:
+    - name: tcp
+      port: {{ .Values.app.env.port }}
+      targetPort: {{ .Values.app.env.port }}
+      protocol: TCP

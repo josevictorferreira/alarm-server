@@ -34,5 +34,8 @@ remove_tag: ## Remove the git tag :arguments -- TAG
 	git tag -d $(TAG)
 	git push origin --delete $(TAG)
 
+helm_upgrade: ## Upgrade the helm chart
+	helm upgrade --install alarm-server -n self-hosted --values .helm/alarm-server/values.yaml .helm/alarm-server
+
 help: ## Show this help.
 	@printf "Usage: make [target]\n\nTARGETS:\n"; grep -F "##" $(MAKEFILE_LIST) | grep -Fv "grep -F" | grep -Fv "printf " | sed -e 's/\\$$//' | sed -e 's/##//' | column -t -s ":" | sed -e 's/^/    /'; printf "\n"
