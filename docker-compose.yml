@@ -5,9 +5,8 @@ services:
     image: alarm_server
     container_name: alarm_server
     command: "./bin/server"
+    env_file: .env
     environment:
-      MQTT_URL: mqtt://user:taN_saShes_dEformity_souNd@10.10.10.150:1883
-      MQTT_TOPIC: alarms
       TZ: America/Sao_Paulo
     ports:
       - 8888:8888

@@ -13,12 +13,15 @@ app:
   label: "alarm-server"
   command: ["./bin/server"]
   replicaCount: 1
-  serviceType: LoadBalancer
-  loadBalancerIP: 10.10.10.155
+  service:
+    port: 8888
+    type: LoadBalancer
+    loadBalancerIP: 10.10.10.155
+    annotations: {}
   env:
     port: 8888
     address: 0.0.0.0
-    mqtt_url: mqtt://localhost:1883
+    mqtt_url: mqtt://rabbitmq-headless:1883
     mqtt_topic: alarms
     log_level: info
     log_output: stdout

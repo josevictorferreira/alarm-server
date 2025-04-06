@@ -73,7 +73,7 @@ spec:
         {{- with .Values.app.env }}
         env:
           {{- range $key, $value := . }}
-          - name: {{ $key }}
+          - name: {{ $key | upper }}
             value: {{ $value | quote }}
           {{- end }}
         {{- end }}

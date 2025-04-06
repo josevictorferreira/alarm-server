@@ -5,15 +5,19 @@ metadata:
   labels:
     name: {{ .Values.app.label }}
     env: {{ .Values.app.environment }}
+  {{- with .Values.app.service.annotations }}
+  annotations:
+    {{ .Values.app.service.annotations | toYaml | nindent 4 }}
+  {{- end }}
 spec:
-  type: {{ .Values.app.serviceType }}
-  {{- if eq .Values.app.serviceType "LoadBalancer" }}
-  loadBalancerIP: {{ .Values.app.loadBalancerIP }}
+  type: {{ .Values.app.service.type }}
+  {{- if eq .Values.app.service.type "LoadBalancer" }}
+  loadBalancerIP: {{ .Values.app.service.loadBalancerIP }}
   {{- end }}
   selector:
     app: {{ .Values.app.label }}
   ports:
     - name: tcp
-      port: {{ .Values.app.env.port }}
+      port: {{ .Values.app.service.port }}
       targetPort: {{ .Values.app.env.port }}
       protocol: TCP
