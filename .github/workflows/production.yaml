@@ -1,0 +1,47 @@
+name: Production Build
+
+on:
+  release:
+    types:
+      - created
+
+env:
+  CONTAINER_REGISTRY: ghcr.io
+  CONTAINER_REGISTRY_USERNAME: $${{ github.actor }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+    steps:
+    - name: Set tag var
+      id: vars
+      run: |
+        echo ::set-output name=version::$(echo ${{ github.ref }} | cut -d '/' -f3 | tr -d 'v')
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Login to Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.CONTAINER_REGISTRY }}
+        username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
+        password: ${{ env.CONTAINER_REGISTRY_PASSWORD }}
+    - name: Run Docker Build (Push Image)
+      if: success()
+      id: push
+      env:
+        IMAGE_TAG: ${{ steps.vars.outputs.version }}
+      run: |
+        docker build . \
+          --tag ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest \
+          --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} \
+          --cache-from ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest \
+          --file ./Dockerfile
+        docker push ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest
+        echo ::set-output name=image::${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest
