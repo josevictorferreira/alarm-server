@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'debug'
-
 module AlarmServer
   class MessageHandler
     include Import[:logger, :mqtt_client, :serializer]

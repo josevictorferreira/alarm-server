@@ -3,7 +3,6 @@
 require_relative '../config/boot'
 require_relative 'alarm_server/message_handler'
 require 'async'
-require 'debug'
 
 module AlarmServer
   Import = ::Import

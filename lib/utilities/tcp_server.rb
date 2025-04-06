@@ -15,7 +15,8 @@ module Utilities
     def start
       Async do |task|
         endpoint = IO::Endpoint::AddressEndpoint.new(address)
-        logger.info("Listening #{endpoint}")
+        logger.info("Listening on #{endpoint}")
+        logger.debug("Environment Variables: #{ENV.map(&:inspect).join(', ')}")
 
         endpoint.accept do |socket, address|
           logger.debug("Connection established with #{address.ip_address}")
@@ -31,7 +32,7 @@ module Utilities
     private
 
     def async_handle_socket(task, socket, address)
-      task.async do
+      task.with_timeout(1.5) do
         message = read_message(socket)
 
         handler.call(socket, message)

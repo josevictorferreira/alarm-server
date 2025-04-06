@@ -4,7 +4,6 @@ require 'spec_helper'
 require 'utilities/tcp_server'
 require 'async'
 require 'json'
-require 'debug'
 
 RSpec.describe Utilities::TcpServer do
   let(:port) { 8080 }

@@ -2,7 +2,6 @@
 
 require 'async'
 require 'async/queue'
-require 'debug'
 
 module Utilities
   class AsyncLogger
@@ -66,11 +65,8 @@ module Utilities
         $stdout
       when 'stderr', $stderr
         $stderr
-      when StringIO
+      else
         output
-      else ## When is a file path
-        FileUtils.mkdir_p(File.dirname(@output)) unless Dir.exist?(File.dirname(output))
-        File.expand_path(file)
       end
     end
 
@@ -81,6 +77,7 @@ module Utilities
         case @output
         when $stdout, $stderr
           @output.puts(format_log_line(log))
+          @output.flush
         else
           write_to_file!(format_log_line(log))
         end

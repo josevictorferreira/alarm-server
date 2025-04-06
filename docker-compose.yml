@@ -1,0 +1,22 @@
+services:
+  alarm_server:
+    build:
+      context: .
+    image: alarm_server
+    container_name: alarm_server
+    command: "./bin/server"
+    environment:
+      MQTT_URL: mqtt://user:taN_saShes_dEformity_souNd@10.10.10.150:1883
+      MQTT_TOPIC: alarms
+      TZ: America/Sao_Paulo
+    ports:
+      - 8888:8888
+    healthcheck:
+      test: >
+        bash -c '
+          echo "PING" | nc 127.0.0.1 8888 | grep -q "PONG"
+        '
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
