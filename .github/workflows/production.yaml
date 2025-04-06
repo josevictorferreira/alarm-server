@@ -21,10 +21,6 @@ jobs:
     outputs:
       image: ${{ steps.push.outputs.image }}
     steps:
-    - name: Set tag var
-      id: vars
-      run: |
-        echo ::set-output name=version::$(echo ${{ github.ref }} | cut -d '/' -f3 | tr -d 'v')
     - name: Checkout
       uses: actions/checkout@v3
     - name: Login to Container Registry
@@ -41,8 +37,7 @@ jobs:
       run: |
         docker build . \
           --tag ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest \
-          --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} \
-          --cache-from ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest \
-          --file ./Dockerfile
-        docker push ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest
-        echo ::set-output name=image::${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest
+          --tag ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG} \
+          --cache-from type=registry,ref=${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest,mode=max \
+          --cache-to type=inline \
+          --push
