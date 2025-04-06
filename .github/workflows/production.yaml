@@ -37,7 +37,7 @@ jobs:
       if: success()
       id: push
       env:
-        IMAGE_TAG: ${{ steps.vars.outputs.version }}
+        IMAGE_TAG: ${{ github.ref_name }}
       run: |
         docker build . \
           --tag ${CONTAINER_REGISTRY}/${GITHUB_REPOSITORY}:latest \

@@ -30,5 +30,9 @@ logs: ## Show the logs of the project container
 sh: ## Open a shell in the project container
 	docker exec -it alarm_server /bin/sh
 
+remove_tag: ## Remove the git tag :arguments -- TAG
+	git tag -d $(TAG)
+	git push origin --delete $(TAG)
+
 help: ## Show this help.
 	@printf "Usage: make [target]\n\nTARGETS:\n"; grep -F "##" $(MAKEFILE_LIST) | grep -Fv "grep -F" | grep -Fv "printf " | sed -e 's/\\$$//' | sed -e 's/##//' | column -t -s ":" | sed -e 's/^/    /'; printf "\n"
