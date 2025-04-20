@@ -9,7 +9,6 @@ module Clients
       @url = url
       @topic = topic
       @connection = Faraday.new(url: url) do |conn|
-        conn.request :json
         conn.response :json, content_type: /\bjson$/
         conn.adapter :net_http
         conn.options.timeout = 3
@@ -17,7 +16,7 @@ module Clients
     end
 
     def send_notification(message)
-      response = @connection.post("/#{@topic}", { message: message })
+      response = @connection.post("/#{@topic}", message)
       response.success?
     end
   end
