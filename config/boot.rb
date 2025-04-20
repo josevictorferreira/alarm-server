@@ -5,4 +5,4 @@ require_relative 'application'
 
 Import = Dry::AutoInject(Application)
 
-Dir[File.join(__dir__, '../lib/alarm_server/**/*.rb')].sort.each { |f| require f }
+Dir[File.join(__dir__, '../lib/alarm_server/**/*.rb')].each { |f| require f }

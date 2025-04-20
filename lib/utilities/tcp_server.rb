@@ -15,8 +15,8 @@ module Utilities
     def start
       Async do |task|
         endpoint = IO::Endpoint::AddressEndpoint.new(address)
-        logger.info("Listening on #{endpoint}")
         logger.debug("Environment Variables: #{ENV.map(&:inspect).join(', ')}")
+        logger.info("Listening on #{endpoint}\n\n")
 
         endpoint.accept do |socket, address|
           logger.debug("Connection established with #{address.ip_address}")

@@ -2,7 +2,7 @@
 
 module AlarmServer
   class MessageHandler
-    include Import[:logger, :mqtt_client, :serializer]
+    include Import[:logger, :mqtt_client, :ntfy_client, :message_config]
 
     def self.call(socket, message)
       new(socket, message).call
@@ -13,19 +13,18 @@ module AlarmServer
       @message = message
       @logger = args[:logger]
       @mqtt_client = args[:mqtt_client]
-      @serializer = args[:serializer]
+      @ntfy_client = args[:ntfy_client]
+      @message_config = args[:message_config]
     end
 
     def call
       return handle_ping! if @message == 'PING'
 
-      @data = parsed_json_message(@message)
+      data = parsed_message(@message)
 
-      case data&.dig(:Type)
-      when 'Alarm'
-        handle_alarm!
-      when 'Log'
-        handle_log!
+      case data&.type
+      when *message_config.filters
+        handle_message! data
       else
         handle_error!
       end
@@ -33,31 +32,30 @@ module AlarmServer
 
     private
 
-    attr_reader :socket, :data
+    attr_reader :socket
+
+    def parsed_message(message)
+      @message_config.parser.new(message, logger).parse
+    rescue StandardError => e
+      logger.error(e.message)
+      nil
+    end
 
     def handle_ping!
       send_response('PONG')
     end
 
-    def handle_alarm!
-      mqtt_client.publish(data)
-      logger.info("ALARM: #{data}")
-    end
-
-    def handle_log!
-      mqtt_client.publish(data)
-      logger.info("LOG: #{data}")
+    def handle_message!(data)
+      mqtt_client&.publish(data.to_h)
+      ntfy_client&.send_notification(data.notification_message) unless data.notification_message.nil?
+      logger.info("MESSAGE: #{data}")
     end
 
     def handle_error!
-      logger.error('Unable to handle message, no `Type` attribute found.')
-    end
-
-    def parsed_json_message(data_str)
-      serializer.load(data_str, mode: :compat, symbol_keys: true, cache_keys: true)
-    rescue StandardError => _e
-      logger.error("Unable to parse JSON, payload: `#{data_str}`")
-      nil
+      logger.error(
+        "Unable to handle message, no `#{@message_config.filters}` " \
+        'in message type found.'
+      )
     end
 
     def send_response(response)

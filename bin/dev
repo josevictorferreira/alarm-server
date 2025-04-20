@@ -3,6 +3,7 @@
 
 require 'bundler/setup'
 require 'listen'
+require 'debug'
 require_relative '../lib/alarm_server'
 require 'dotenv'
 

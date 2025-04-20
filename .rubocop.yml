@@ -1,2 +1,13 @@
+plugins:
+  - rubocop-performance
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  SuggestExtensions: false
+
 Style/Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
   Enabled: false

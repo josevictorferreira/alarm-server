@@ -19,12 +19,17 @@ app:
     loadBalancerIP: 10.10.10.155
     annotations: {}
   env:
-    port: 8888
+    port: "8888"
     address: 0.0.0.0
     mqtt_url: mqtt://rabbitmq-headless:1883
     mqtt_topic: alarms
+    message_parser: icsee
+    message_filters: log,alarm
     log_level: info
     log_output: stdout
+    ntfy_enabled: "false"
+    ntfy_url: https://ntfy.sh
+    ntfy_topic: camera_alarms
   resources:
     requests:
       memory: 512Mi

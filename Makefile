@@ -9,9 +9,6 @@ dev: ## Run the development server
 server: ## Run the production server
 	./bin/server
 
-ping: ## Ping the server
-	echo "PING" | nc 0.0.0.0 8888
-
 build: ## Build the project container image
 	docker-compose build
 
@@ -29,6 +26,24 @@ logs: ## Show the logs of the project container
 
 sh: ## Open a shell in the project container
 	docker exec -it alarm_server /bin/sh
+
+lint: ## Run the linter
+	bundle exec rubocop
+
+t_ping: ## Ping the server
+	echo "PING" | nc 0.0.0.0 8888
+
+t_alarm: ## Test the server with an alarm message
+	echo '{"Address": "0x0A01A8C0", "Channel": 0, "Descrip": "", "Event": "HumanDetect", "SerialID": "93a94d6fcb2e8056", "StartTime": "2025-04-20 18:05:43", "Status": "Start", "Type": "Alarm"}' | nc 0.0.0.0 8888
+
+t_log: ## Test the server with an log message
+	echo '{"Address": "0x0A01A8C0", "Channel": 0, "Descrip": "", "Event": "BlindDetect", "SerialID": "93a94d6fcb2e8056", "StartTime": "2025-04-20 18:05:43", "Status": "Start", "Type": "Log"}' | nc 0.0.0.0 8888
+
+t_invalid: ## Test the server with an invalid message
+	echo '{"Address": "0x0A01A8C0", "Channel": 0, "Descrip": "", "Event": "HumanDetect", "SerialID": "93a94d6fcb2e8056", "StartTime": "2025-04-20 18:05:43", "Status": "Start", "Type": "RandomType"}' | nc 0.0.0.0 8888
+
+t_invalid_parse: ## Test the server with an invalid message with invalid json
+	echo 'RandomMessage Hello World!' | nc 0.0.0.0 8888
 
 remove_tag: ## Remove the git tag :arguments -- TAG
 	git tag -d $(TAG)

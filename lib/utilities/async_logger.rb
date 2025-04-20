@@ -92,7 +92,7 @@ module Utilities
     end
 
     def write_to_file!(log_line)
-      FileUtils.mkdir_p(File.dirname(@output)) unless Dir.exist?(File.dirname(@output))
+      FileUtils.mkdir_p(File.dirname(@output))
       File.open(@output, 'a') do |file|
         file.write(log_line)
       end

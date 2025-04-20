@@ -54,7 +54,7 @@ RSpec.describe Utilities::TcpServer do
     let(:task) { instance_double('Async::Task') }
 
     before do
-      allow(task).to receive(:async).and_yield
+      allow(task).to receive(:with_timeout).and_yield
       allow(socket).to receive(:close)
     end
 
@@ -82,7 +82,7 @@ RSpec.describe Utilities::TcpServer do
 
       it 'logs the error and closes the socket' do
         expect(logger).to receive(:error)
-          .with("Connection with 127.0.0.1 exited \nError: Test error\n Backtrace: \[\"backtrace\"\]")
+          .with("Connection with 127.0.0.1 exited \nError: Test error\n Backtrace: [\"backtrace\"]")
         expect(logger).to receive(:debug)
           .with(/Connection closed with #{address}/)
 
@@ -96,11 +96,11 @@ RSpec.describe Utilities::TcpServer do
 
     context 'when the message ends with a newline' do
       before do
-        allow(socket).to receive(:readpartial).with(1024).and_return('{"key":"value"}' + "\n")
+        allow(socket).to receive(:readpartial).with(1024).and_return("{\"key\":\"value\"}\n")
       end
 
       it 'reads the message and parses it' do
-        expect(server).to receive(:parse_message).with('{"key":"value"}' + "\n").and_return(message)
+        expect(server).to receive(:parse_message).with("{\"key\":\"value\"}\n").and_return(message)
 
         result = server.send(:read_message, socket)
         expect(result).to eq(message)
@@ -109,11 +109,11 @@ RSpec.describe Utilities::TcpServer do
 
     context 'when the message is received in chunks' do
       before do
-        allow(socket).to receive(:readpartial).with(1024).and_return('{"key":', '"value"}' + "\n")
+        allow(socket).to receive(:readpartial).with(1024).and_return('{"key":', "\"value\"}\n")
       end
 
       it 'reads all chunks until newline and parses the message' do
-        expect(server).to receive(:parse_message).with('{"key":"value"}' + "\n").and_return(message)
+        expect(server).to receive(:parse_message).with("{\"key\":\"value\"}\n").and_return(message)
 
         result = server.send(:read_message, socket)
         expect(result).to eq(message)
