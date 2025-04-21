@@ -22,8 +22,7 @@ module AlarmServer
 
       data = parsed_message(@message)
 
-      case data&.type
-      when *message_config.filters
+      if message_config.filters.include? data&.type
         handle_message! data
       else
         handle_error!
@@ -46,9 +45,22 @@ module AlarmServer
     end
 
     def handle_message!(data)
-      mqtt_client&.publish(data.to_h)
-      ntfy_client&.send_notification(data.notification_message) unless data.notification_message.nil?
-      logger.info("MESSAGE: #{data}")
+      publish_mqtt(data)
+      publish_notification(data)
+    end
+
+    def publish_mqtt(data)
+      return if data.nil? || data.parsed_data.nil?
+
+      mqtt_client&.publish(
+        data.to_h
+      )
+    end
+
+    def publish_notification(data)
+      return if data.notification_message.nil? || data.notification_message == ''
+
+      ntfy_client&.send_notification(data.notification_message)
     end
 
     def handle_error!

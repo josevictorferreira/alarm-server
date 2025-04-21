@@ -20,7 +20,7 @@ module Parsers
     private
 
     def parsed_message(data)
-      return unless data[:Type] == 'Alarm' && data[:Status] == 'Start' && data[:Event] == 'HumanDetect'
+      return nil if data[:Type] != 'Alarm' || data[:Status] != 'Start' || data[:Event] != 'HumanDetect'
 
       notification_data = NotificationData.new(
         title: 'Human detected!',
