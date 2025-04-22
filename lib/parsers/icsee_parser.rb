@@ -11,7 +11,7 @@ module Parsers
         device_id: parsed_data[:SerialID],
         type: parsed_data[:Type].downcase,
         time: Time.parse(parsed_data[:StartTime]),
-        notification_message: parsed_message(parsed_data),
+        notification_data: notification_data,
         parsed_data: parsed_data,
         raw_message: raw_data
       )
@@ -19,11 +19,19 @@ module Parsers
 
     private
 
+    def notification_data
+      @notification_data ||= NotificationData.new(
+        title: 'Human Detected!',
+        priority: priority,
+        tags: %w[adult movie_camera],
+        message: parsed_message(parsed_data)
+      )
+    end
+
     def parsed_message(data)
       return nil if data[:Type] != 'Alarm' || data[:Status] != 'Start' || data[:Event] != 'HumanDetect'
 
-      notification_data = NotificationData.new(
-        title: 'Human detected!',
+      notification_content_data = NotificationContentData.new(
         device_name: 'ICSee Cam',
         device_address: data[:Address],
         device_channel: data[:Channel],
@@ -31,7 +39,7 @@ module Parsers
         status: data[:Status]
       )
 
-      rendered_template('base_notification', notification_data)
+      rendered_template('base_notification', notification_content_data)
     end
   end
 end

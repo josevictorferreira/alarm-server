@@ -13,4 +13,6 @@ module MessageConfig
 
     Object.const_get("Parsers::#{default_parser.split.map(&:capitalize).join}Parser")
   }
+
+  setting :priority, default: ENV.fetch('MESSAGE_PRIORITY', 'default').to_sym
 end

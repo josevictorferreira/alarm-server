@@ -34,7 +34,7 @@ module AlarmServer
     attr_reader :socket
 
     def parsed_message(message)
-      @message_config.parser.new(message, logger).parse
+      @message_config.parser.new(message, message_config.priority, logger).parse
     rescue StandardError => e
       logger.error(e.message)
       nil
@@ -58,9 +58,11 @@ module AlarmServer
     end
 
     def publish_notification(data)
-      return if data.notification_message.nil? || data.notification_message == ''
+      notification_data = data.notification_data
+      return if notification_data.message.nil? || notification_data.message == ''
 
-      ntfy_client&.send_notification(data.notification_message)
+      ntfy_client&.send_notification(notification_data.title, notification_data.message,
+                                     priority: notification_data.priority, tags: notification_data.tags)
     end
 
     def handle_error!

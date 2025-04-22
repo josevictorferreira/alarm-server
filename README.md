@@ -26,6 +26,7 @@ The server is configured using environment variables. The following variables ar
 - `LOG_OUTPUT`: The output to log to. Default: `STDOUT`.  Can be also a file path.
 - `MESSAGE_PARSER`: The message parser to be used. Default: `icsee`. Currently there's only this parser available.
 - `MESSAGE_FILTERS`: The filters of the messages to be forwarded, it will match on the "Type" of the message. Default: `alarm,log`
+- `MESSAGE_PRIORITY`: The priority of the message to be forwarded, it can be one of the values  `min,low,default,high,max`. Default: `default`
 - `MQTT_URL`: The URL of the MQTT broker. Default: `tcp://localhost:1883`
 - `MQTT_TOPIC`: The topic to publish the alarm messages to. Default: `alarm`
 - `MQTT_CLIENT_ID`: The client ID to use when connecting to the MQTT broker. Default: `alarm_server`
