@@ -29,7 +29,7 @@ module Parsers
     end
 
     def parsed_message(data)
-      return nil if data[:Type] != 'Alarm' || data[:Status] != 'Start' || data[:Event] != 'HumanDetect'
+      return nil if data[:Type] != 'Alarm' || data[:Event] != 'HumanDetect'
 
       notification_content_data = NotificationContentData.new(
         device_name: 'ICSee Cam',
