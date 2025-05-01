@@ -1,8 +1,9 @@
+# typed: false
 # frozen_string_literal: true
 
-require_relative '../config/boot'
-require_relative 'alarm_server/message_handler'
-require 'async'
+require_relative "../config/boot"
+require_relative "alarm_server/message_handler"
+require "async"
 
 module AlarmServer
   Import = ::Import
@@ -13,7 +14,7 @@ module AlarmServer
       App[:tcp_server].start(
         address: App[:server_address],
         handler: MessageHandler,
-        logger: App[:logger]
+        logger: App[:logger],
       )
     end
   end

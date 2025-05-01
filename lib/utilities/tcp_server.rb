@@ -1,6 +1,7 @@
+# typed: false
 # frozen_string_literal: true
 
-require 'io/endpoint'
+require "io/endpoint"
 
 module Utilities
   class TcpServer
@@ -15,7 +16,7 @@ module Utilities
     def start
       Async do |task|
         endpoint = IO::Endpoint::AddressEndpoint.new(address)
-        logger.debug("Environment Variables: #{ENV.map(&:inspect).join(', ')}")
+        logger.debug("Environment Variables: #{ENV.map(&:inspect).join(", ")}")
         logger.info("Listening on #{endpoint}\n\n")
 
         endpoint.accept do |socket, address|
@@ -45,24 +46,24 @@ module Utilities
     end
 
     def read_message(socket)
-      full_message = ''
+      full_message = ""
       while (raw_data = socket.readpartial(1024))
         full_message += raw_data
         break if full_message.end_with?("\n")
       end
       parse_message(full_message)
     rescue EOFError
-      logger.debug('Connection closed by client') && '{}'
+      logger.debug("Connection closed by client") && "{}"
     end
 
     def parse_message(full_message)
-      json_start_idx = full_message.index('{')
+      json_start_idx = full_message.index("{")
       full_data = if json_start_idx.nil? || json_start_idx.zero?
-                    full_message
-                  else
-                    full_message[json_start_idx..]
-                  end
-      full_data.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '').chomp
+        full_message
+      else
+        full_message[json_start_idx..]
+      end
+      full_data.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: "").chomp
     end
   end
 end

@@ -1,16 +1,17 @@
+# typed: false
 # frozen_string_literal: true
 
-require 'dry-container'
-require 'mqtt'
-require 'oj'
-require_relative 'logger_config'
-require_relative 'server_config'
-require_relative 'mqtt_config'
-require_relative 'ntfy_config'
-require_relative 'message_config'
-require_relative '../lib/utilities/async_logger'
-require_relative '../lib/utilities/tcp_server'
-require_relative '../lib/clients/ntfy_client'
+require "dry-container"
+require "mqtt"
+require "oj"
+require_relative "logger_config"
+require_relative "server_config"
+require_relative "mqtt_config"
+require_relative "ntfy_config"
+require_relative "message_config"
+require_relative "../lib/utilities/async_logger"
+require_relative "../lib/utilities/tcp_server"
+require_relative "../lib/clients/ntfy_client"
 
 class Application
   extend Dry::Container::Mixin
@@ -39,7 +40,7 @@ class Application
     if NtfyConfig.config.enabled
       Clients::NtfyClient.new(
         url: NtfyConfig.config.url,
-        topic: NtfyConfig.config.topic
+        topic: NtfyConfig.config.topic,
       )
     end
   end

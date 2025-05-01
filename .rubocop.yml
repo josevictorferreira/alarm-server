@@ -1,5 +1,11 @@
+inherit_gem:
+  rubocop-shopify: rubocop.yml
+
 plugins:
   - rubocop-performance
+  - rubocop-rspec
+  - rubocop-sorbet
+  - rubocop-thread_safety
 
 AllCops:
   NewCops: enable

@@ -1,7 +1,8 @@
+# typed: false
 # frozen_string_literal: true
 
-require 'async'
-require 'async/queue'
+require "async"
+require "async/queue"
 
 module Utilities
   class AsyncLogger
@@ -61,9 +62,9 @@ module Utilities
 
     def initialize_output(output)
       case output
-      when 'stdout', $stdout
+      when "stdout", $stdout
         $stdout
-      when 'stderr', $stderr
+      when "stderr", $stderr
         $stderr
       else
         output
@@ -87,13 +88,13 @@ module Utilities
     def format_log_line(log)
       level, message = log
 
-      timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S.%L')
+      timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S.%L")
       "[#{timestamp}] #{level.to_s.upcase} => #{message}\n"
     end
 
     def write_to_file!(log_line)
       FileUtils.mkdir_p(File.dirname(@output))
-      File.open(@output, 'a') do |file|
+      File.open(@output, "a") do |file|
         file.write(log_line)
       end
     end

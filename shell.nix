@@ -13,6 +13,7 @@ pkgs.mkShell {
     curl
     gnumake
     libyaml
+    watchman
   ];
 
   shellHook = ''

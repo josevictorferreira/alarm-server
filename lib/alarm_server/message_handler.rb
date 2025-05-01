@@ -1,13 +1,40 @@
+# typed: true
 # frozen_string_literal: true
+
+require "socket"
+require "mqtt"
+require_relative "../../config/message_config"
+require_relative "../utilities/async_logger"
+require_relative "../clients/ntfy_client"
 
 module AlarmServer
   class MessageHandler
+    extend T::Sig
+
     include Import[:logger, :mqtt_client, :ntfy_client, :message_config]
 
-    def self.call(socket, message)
-      new(socket, message).call
+    sig { returns(Utilities::AsyncLogger) }
+    attr_reader :logger
+
+    sig { returns(MQTT::Client) }
+    attr_reader :mqtt_client
+
+    sig { returns(Clients::NtfyClient) }
+    attr_reader :ntfy_client
+
+    sig { returns(MessageConfig) }
+    attr_reader :message_config
+
+    class << self
+      extend T::Sig
+
+      sig { params(socket: Socket, message: String).void }
+      def call(socket, message)
+        new(socket, message).call
+      end
     end
 
+    sig { params(socket: Socket, message: String, args: T::Hash[Symbol, T.untyped]).void }
     def initialize(socket, message, **args)
       @socket = socket
       @message = message
@@ -18,12 +45,12 @@ module AlarmServer
     end
 
     def call
-      return handle_ping! if @message == 'PING'
+      return handle_ping! if @message == "PING"
 
       data = parsed_message(@message)
 
-      if message_config.filters.include? data&.type
-        handle_message! data
+      if message_config.filters.include?(data&.type)
+        handle_message!(data)
       else
         handle_error!
       end
@@ -41,7 +68,7 @@ module AlarmServer
     end
 
     def handle_ping!
-      send_response('PONG')
+      send_response("PONG")
     end
 
     def handle_message!(data)
@@ -53,25 +80,32 @@ module AlarmServer
       return if data.nil? || data.parsed_data.nil?
 
       mqtt_client&.publish(
-        data.to_h
+        data.to_h,
       )
     end
 
+    sig { params(data: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
     def publish_notification(data)
       notification_data = data.notification_data
-      return if notification_data.message.nil? || notification_data.message == ''
+      return false if notification_data.message.nil? || notification_data.message == ""
 
-      ntfy_client&.send_notification(notification_data.title, notification_data.message,
-                                     priority: notification_data.priority, tags: notification_data.tags)
+      ntfy_client.send_notification(
+        notification_data.title,
+        notification_data.message,
+        priority: notification_data.priority,
+        tags: notification_data.tags,
+      )
     end
 
+    sig { void }
     def handle_error!
       logger.error(
         "Unable to handle message, no `#{@message_config.filters}` " \
-        'in message type found.'
+          "in message type found.",
       )
     end
 
+    sig { params(response: String).void }
     def send_response(response)
       socket&.write(response)
 
